@@ -1,0 +1,59 @@
+options:
+	maxgens: 30
+	interval: 1 seconds
+every {@interval}:
+	loop all players:
+		if "%{private::genslotsused::%loop-player's uuid%}%" contains "-":
+			set {_fix} to 0
+		loop {private::gens::%loop-player's uuid%::allgens::*}:
+			add 1 to {_fix}
+			set {_int} to int tag "genSettings;Tier" of nbt compound of block at loop-value-2
+			if {_int} is set:
+				set {_location} to block at loop-value-2
+				add 1 to y coord of {_location}
+				drop {public::gens::%{_int}%::drop} at {_location} without velocity
+		if {_fix} is not 0:
+			set {private::genslotsused::%loop-player's uuid%} to {_fix}
+
+on place:
+	if line 1 of lore of player's held item contains "Generator":
+		if event is not canceled:
+			# GET VALUES
+			set {_tier} to uncolored line 5 of lore of player's held item
+			replace "|" and " " and "Tier" and ":" with "" in {_tier}
+			set {_tier} to {_tier} parsed as int
+			# NBT
+			set int tag "genSettings;Tier" of nbt compound of event-block to {_tier}  
+			set {_int} to int tag "genSettings;Tier" of nbt compound of event-block
+			set string tag "genSettings;Player" of nbt compound of event-block to "%player%"
+			set {_text} to string tag "genSettings;Player" of nbt compound of event-block
+			# Code
+			add location at event-block to {private::gens::%player's uuid%::allgens::*}
+			add 1 to {private::genslotsused::%player's uuid%}
+			send action bar "&8[&a!&8]&f Generator Placed! &8[&f%{private::genslotsused::%player's uuid%} ? 0%&6/&f%{@maxgens} + {private::genslots::%player's uuid%}%&f&8]" to player
+			draw 20 of poof at event-block with extra 0.5
+			# DEBUG
+			#send {_int} to player
+			#send {_text} to player
+
+on left click:
+	set {_tier} to int tag "genSettings;Tier" of nbt compound of event-block
+	if {_tier} is set:
+		set event-block to air
+		remove location at event-block from {private::gens::%player's uuid%::allgens::*}
+		remove 1 from {private::genslotsused::%player's uuid%}
+		send action bar "&8[&a!&8]&f Generator Removed! &8[&f%{private::genslotsused::%player's uuid%} ? 0%&6/&f%{@maxgens} + {private::genslots::%player's uuid%}%&f&8]" to player
+		draw 20 of poof at event-block with extra 0.5
+
+on load:
+	makeGen(1, "Test", coal block, coal, 25, "&8")
+
+function makeGen(id: number, title: text, block: itemtype, drop: itemtype, output: number, colorcode: text):
+	set {public::gens::%{_id}%} to {_id}
+	set {public::gens::%{_id}%::output} to {_output}
+	set {public::gens::%{_id}%::title} to {_title}
+	set {public::gens::%{_id}%::block} to {_block}
+	set {public::gens::%{_id}%::colorcode} to {_colorcode}
+	set {public::gens::%{_id}%::genblock} to {_block} named "%{_title}%" with lore "&8Generator%nl%&f%nl%%{_colorcode}%&l| &fInformation%nl%%{_colorcode}%&l| &fOutput: &2$&a%modules_format({_output})%%nl%%{_colorcode}%&l| &fTier: %{_id}%"
+	set {public::gens::%{_id}%::drop} to {_drop} named "%{_title}%" with lore "&8Drop%nl%&f%nl%&f%{_colorcode}%&l| &fInformation%nl%%{_colorcode}%&l| &fOutput: &2$&a%modules_format({_output})%%nl%%{_colorcode}%&l| &fTier: %{_id}%"
+	# - PUBLIC VARIABLES - #

@@ -1,0 +1,5 @@
+* -> LEGACY
+
+Citizens, CoreProtect, DecentHolograms, Essentials, ExcellentCrates, FastAsyncWorldEdit, InventoryRollbackPlus, ItemEdit, LuckPerms, Multiverse-Core
+nightcore, PlaceholderAPI, SkBee, SkQuery, Skript, skript-placeholders, skript-reflect, *SkriptJSON, TAB, Vault
+ViaBackwards, ViaVersion, VoidGen, WorldGuard
